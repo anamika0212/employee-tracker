@@ -49,11 +49,13 @@ function mainMenu(){
         choices:[
             "View all employees",
             "View all roles",
+            "View all departments",
             "View all employees by department",
             "View all employees by role",
             "Add employee",
             "Add department",
             "Add role",
+            "Update employee role",
         ]
     })
 
@@ -66,6 +68,10 @@ function mainMenu(){
             
             case "View all roles":
                 viewAllRoles();
+                break;
+
+            case "View all departments":
+                viewAllDepartments();
                 break;
 
             case "View all employees by department":
@@ -86,6 +92,10 @@ function mainMenu(){
 
             case "Add role":
                 addRole();
+                break;
+
+            case "Update employee role":
+                updateEmpRole();
                 break;
 
         }
@@ -117,6 +127,25 @@ function viewAllRoles(){
 
     // Query to view all employees
     let query = "SELECT role.id, role.title, department.name AS department FROM role INNER JOIN department ON role.department_id = department.id";
+
+    // Query from connection
+    connection.query(query, function(err, res) {
+        if(err) return err;
+        console.log("\n");
+
+        // Display query results using console.table
+        console.table(res);
+
+        //Back to main menu
+        mainMenu();
+    });
+}
+
+// View all Departments 
+function viewAllDepartments(){
+
+    // Query to view all employees
+    let query = "SELECT department.id, department.name from department";
 
     // Query from connection
     connection.query(query, function(err, res) {
@@ -305,6 +334,84 @@ function addDept(){
             });
 
         });
+}
+
+// Update Employee Role
+function updateEmpRole(){
+
+    // create employee and role array
+    let employeeArr = [];
+    let roleArr = [];
+
+    // Create connection using promise-sql
+    pool.getConnection().then((conn) => {
+        return Promise.all([
+
+            // query all roles and employee
+            conn.query('SELECT id, title FROM role ORDER BY title ASC'), 
+            conn.query("SELECT employee.id, concat(employee.first_name, ' ' ,  employee.last_name) AS Employee FROM employee ORDER BY Employee ASC")
+        ]);
+    }).then(([[roles], [employees]]) => {
+
+        // place all roles in array
+        for (i=0; i < roles.length; i++){
+            roleArr.push(roles[i].title);
+        }
+
+        // place all empoyees in array
+        for (i=0; i < employees.length; i++){
+            employeeArr.push(employees[i].Employee);
+            //console.log(value[i].name);
+        }
+
+        return Promise.all([roles, employees]);
+    }).then(([roles, employees]) => {
+
+        inquirer.prompt([
+            {
+                // prompt user to select employee
+                name: "employee",
+                type: "list",
+                message: "Who would you like to edit?",
+                choices: employeeArr
+            }, {
+                // Select role to update employee
+                name: "role",
+                type: "list",
+                message: "What is their new role?",
+                choices: roleArr
+            },]).then((answer) => {
+
+                let roleID;
+                let employeeID;
+
+                /// get ID of role selected
+                for (i=0; i < roles.length; i++){
+                    if (answer.role == roles[i].title){
+                        roleID = roles[i].id;
+                    }
+                }
+
+                // get ID of employee selected
+                for (i=0; i < employees.length; i++){
+                    if (answer.employee == employees[i].Employee){
+                        employeeID = employees[i].id;
+                    }
+                }
+                
+                // update employee with new role
+                connection.query(`UPDATE employee SET role_id = ${roleID} WHERE id = ${employeeID}`, (err, res) => {
+                    if(err) return err;
+
+                    // confirm update employee
+                    console.log(`\n ${answer.employee} ROLE UPDATED TO ${answer.role}...\n `);
+
+                    // back to main menu
+                    mainMenu();
+                });
+            });
+    });
+    
 }
 
 // Add employee
