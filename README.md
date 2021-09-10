@@ -7,13 +7,15 @@ The application gives you the following options:
 * Add an employee, role, or department
 * Update an employee's role
 
-Video:
-[![Employee-tracker](https://img.youtube.com/vi/qBAO-cD-ouc/0.jpg)](https://www.youtube.com/watch?v=qBAO-cD-ouc)
-
 ## Usage
 ---
 1. Run `node server.js` to start the application
 2. Select from the menu to view, add, remove, or update employees, roles, departments, or managers
+
+## Demo
+
+[![Employee-tracker](https://img.youtube.com/vi/qBAO-cD-ouc/0.jpg)](https://www.youtube.com/watch?v=qBAO-cD-ouc)
+
 
 
 ## Tool & Resources
